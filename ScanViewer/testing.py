@@ -11,7 +11,9 @@ from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg, NavigationToolb
 from filedialogs import open_file_dialog
 from nibabel.testing import data_path
 
-
+"""
+Nadpisanie klasy FigureCanvasQTAgg w celu przechwytywania wydarzeń
+"""
 class Canvas(FigureCanvasQTAgg):
     def __init__(self, fig: Figure):
         super(Canvas, self).__init__(fig)
@@ -19,17 +21,25 @@ class Canvas(FigureCanvasQTAgg):
         self.drawing = False
         self.contour = None
 
+    """
+    setToolbar przypisuje jakis toolbar danemu canvasowi od razu go chowając i włączając przesuwanie (nie ma celu bawić się w włączenie tego w wydarzeniach)
+    """
     def setToolbar(self, toolbar: NavigationToolbar2QT):
         self.toolbar = toolbar
         self.toolbar.hide()
         self.toolbar.pan()
 
+    """
+    Przechwycenie wydarzenia scrollowania - zoom obrazka
+    """
     def wheelEvent(self, event):
         ax = self.figure.get_axes()[0]
         ax.use_stick_edges = False
+        """^Nie jestem pewny, czy to jest potrzebne"""
         xmin, xmax = ax.get_xlim()
         ymin, ymax = ax.get_ylim()
         scale = (xmax - xmin) / (ymax - ymin)
+        """angleDelta to różnica w ustawieniu scrolla -> >0 oznacza scrollowanie od siebie ergo przybliżanie"""
         if event.angleDelta().y() > 0:
             ax.set_xlim(xmin+1.5 * scale, xmax-1.5 * scale, auto=False)
             ax.set_ylim(ymin+1.5, ymax-1.5)
@@ -38,6 +48,10 @@ class Canvas(FigureCanvasQTAgg):
             ax.set_ylim(ymin - 1.5, ymax + 1.5)
         self.figure.canvas.draw()
 
+    """
+    Przechwycenie wydarzenia ruchu, ale tylko jesli rysujemy (przycisk draw dla danego canvasu zostal wcisniety) i trzymamy LPM
+    w innym wypadku po prostu odsylamy event do klasy po ktorej dziedziczymy
+    """
     def mouseMoveEvent(self, event):
         if self.drawing:
             if event.buttons() and Qt.LeftButton:
@@ -57,10 +71,13 @@ class MyWidget(QtWidgets.QWidget):
         super().__init__()
 
         self.img = None
+        """Stały rozmiar tych Figure jest wazny, inaczej scrollowanie wyglada rough"""
         self.fig_left = Figure(figsize=(8, 6))
         self.fig_mid = Figure(figsize=(8, 6))
         self.fig_right = Figure(figsize=(8, 8))
 
+        """Przyciski"""
+        self.load = QtWidgets.QPushButton("Load Image")
         self.reset_left = QtWidgets.QPushButton('Reset')
         self.reset_mid = QtWidgets.QPushButton('Reset')
         self.reset_right = QtWidgets.QPushButton('Reset')
@@ -68,6 +85,7 @@ class MyWidget(QtWidgets.QWidget):
         self.draw_mid = QtWidgets.QPushButton('Draw')
         self.draw_right = QtWidgets.QPushButton('Draw')
 
+        """Canvasy na których wyświetlany będzie skan"""
         self.canvas_left = Canvas(self.fig_left)
         self.canvas_mid = Canvas(self.fig_mid)
         self.canvas_right = Canvas(self.fig_right)
@@ -77,7 +95,10 @@ class MyWidget(QtWidgets.QWidget):
         self.canvas_mid.setToolbar(self.toolbar_mid)
         self.toolbar_right = NavigationToolbar2QT(self.canvas_right, self)
         self.canvas_right.setToolbar(self.toolbar_right)
-        self.load = QtWidgets.QPushButton("Load Image")
+
+
+
+        """Slidery do przesuwania danej perspektywy skanu"""
         self.slider1 = QtWidgets.QSlider()
         self.slider1.setMinimum(0)
         self.slider1.setOrientation(QtCore.Qt.Orientation.Horizontal)
@@ -91,6 +112,7 @@ class MyWidget(QtWidgets.QWidget):
         self.slider3.setOrientation(QtCore.Qt.Orientation.Horizontal)
         self.slider3.valueChanged.connect(lambda: self.draw_plots(self.fig_right, "right"))
 
+        """Layout w qt - doku jest spoko opisana taki trochę flexbox"""
         self.layout = QtWidgets.QVBoxLayout(self)
         self.buttons = QtWidgets.QHBoxLayout(self)
         self.buttons_left = QtWidgets.QHBoxLayout(self)
@@ -118,12 +140,18 @@ class MyWidget(QtWidgets.QWidget):
         self.layout.addLayout(canvas_layout)
         self.layout.addLayout(slider_layout)
 
+        """Połączenia dla przycisków"""
         self.load.clicked.connect(self.load_scan)
         self.reset_left.clicked.connect(self.toolbar_left.home)
         self.reset_mid.clicked.connect(self.toolbar_mid.home)
         self.reset_right.clicked.connect(self.toolbar_right.home)
         self.draw_left.clicked.connect(self.canvas_left.drawToggle)
+        self.draw_mid.clicked.connect(self.canvas_mid.drawToggle)
+        self.draw_right.clicked.connect(self.canvas_right.drawToggle)
 
+    """
+    Ukradzione z dokumentacji nibabela
+    """
     @QtCore.Slot()
     def draw_plots(self, fig: Figure, panel):
         if len(fig.axes) != 0:
