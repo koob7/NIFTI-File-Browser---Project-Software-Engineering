@@ -2,6 +2,8 @@ import os.path
 
 import sys
 import random
+
+import matplotlib.pyplot
 import nibabel
 import numpy as np
 from PySide6.QtCore import Qt
@@ -14,12 +16,15 @@ from nibabel.testing import data_path
 """
 Nadpisanie klasy FigureCanvasQTAgg w celu przechwytywania wydarzeń
 """
+
+
 class Canvas(FigureCanvasQTAgg):
     def __init__(self, fig: Figure):
         super(Canvas, self).__init__(fig)
         self.toolbar: NavigationToolbar2QT = None
         self.drawing = False
         self.contour = None
+        self.cid = fig.canvas.mpl_connect('motion_notify_event', self.drawMatplot)
 
     """
     setToolbar przypisuje jakis toolbar danemu canvasowi od razu go chowając i włączając przesuwanie (nie ma celu bawić się w włączenie tego w wydarzeniach)
@@ -48,23 +53,19 @@ class Canvas(FigureCanvasQTAgg):
             ax.set_ylim(ymin - 1.5, ymax + 1.5)
         self.figure.canvas.draw()
 
-    """
-    Przechwycenie wydarzenia ruchu, ale tylko jesli rysujemy (przycisk draw dla danego canvasu zostal wcisniety) i trzymamy LPM
-    w innym wypadku po prostu odsylamy event do klasy po ktorej dziedziczymy
-    """
-    def mouseMoveEvent(self, event):
-        if self.drawing:
-            if event.buttons() and Qt.LeftButton:
-                print("drawing")
-        else:
-            super(Canvas, self).mouseMoveEvent(event)
-
     def drawToggle(self):
         if not self.drawing:
             self.drawing = True
         else:
             self.drawing = False
         self.toolbar.pan()
+
+    def drawMatplot(self, event):
+        if event.button == 1:
+            if self.drawing:
+                ax = self.figure.get_axes()[0]
+                ax.plot(event.xdata, event.ydata, 'bo')
+                self.figure.canvas.draw()
 
 class MyWidget(QtWidgets.QWidget):
     def __init__(self):
