@@ -154,6 +154,7 @@ class GUIWindow(QtWidgets.QWidget):
     
     Edit:
     Uważam, że dobrym pomysłem byłoby nałożenie jakieś Pixmapy w miejsce w którym jest wyświetlane zdjęcie i rysowanie na niej
+    Pozdrawiam, ja debil
     """
     def paintEvent(self, event):
         # drawing handling
@@ -161,7 +162,7 @@ class GUIWindow(QtWidgets.QWidget):
         pen.setWidth(7)
 
         # uploading img
-        painter = QPainter(self)
+        painter = QPainter(self) # jakbysmy wlozyli cos innego niz self tutaj to mogloby zadzialac, ale to cos musialoby byc przezroczyste i nad naszym skanem raka
         painter.setPen(pen)
         painter.drawLine(15, 15, 250, 0)
         self.canvas_left.paint()
