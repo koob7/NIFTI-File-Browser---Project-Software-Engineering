@@ -16,6 +16,7 @@ class Canvas(FigureCanvasQTAgg):
         self.toolbar: NavigationToolbar2QT = None
         self.drawing = False
         self.contour = None
+        self.cid = fig.canvas.mpl_connect('motion_notify_event', self.drawMatplot)
 
     """
     setToolbar przypisuje jakis toolbar danemu canvasowi od razu go chowając 
@@ -52,20 +53,12 @@ class Canvas(FigureCanvasQTAgg):
     w innym wypadku po prostu odsylamy event do klasy po ktorej dziedziczymy
     """
 
-    def mouseMoveEvent(self, event):
-        if self.drawing:
-            if event.buttons() and Qt.LeftButton:
-                print("drawing")
-                # pen = QPen()
-                # pen.setWidth(777)
-                #
-                # painter = QPainter(self)
-                # painter.setPen(pen)
-                # painter.drawEllipse(15, 15, 200, 200)
-                # self.figure.canvas.draw()
-
-        else:
-            super(Canvas, self).mouseMoveEvent(event)
+    def drawMatplot(self, event):
+        if event.button == 1:
+            if self.drawing:
+                ax = self.figure.get_axes()[0]
+                ax.plot(event.xdata, event.ydata, 'bo')
+                self.figure.canvas.draw()
 
 
     def drawToggle(self):
