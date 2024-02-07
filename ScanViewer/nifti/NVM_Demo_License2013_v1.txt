@@ -1,0 +1,85 @@
+                                          Neuromorphometrics, Inc. 
+                                          22 Westminster Street
+                                          Somerville MA, 02144-1630
+                                          Phone/Fax (617) 776-7844
+                                          neuromorphometrics.com
+
+END USER LICENSE AGREEMENT
+
+BY DOWNLOADING THE SOFTWARE, LABELED BRAIN SCAN(S), AND DOCUMENTATION,
+YOU ARE CONSENTING TO BE BOUND BY AND ARE BECOMING A PARTY TO THIS
+AGREEMENT. IF YOU DO NOT AGREE TO ALL OF THE TERMS OF THIS AGREEMENT,
+DO NOT DOWNLOAD THE FILES.
+
+LICENSE GRANT
+
+The download link points to a compressed file or files containing
+executable software ("Software"), one or more labeled brain scans
+("Labeled Scans") and related explanatory written materials
+("Documentation").  "NVM Demo" means the Software, Labeled Scans,
+and Documentation, collectively.  "You" means the individual who
+is being licensed to evaluate the NVM Demo. "We" and "us" means
+Neuromorphometrics, Inc.
+
+Upon download of the NVM Demo and your agreement to the terms herein,
+we hereby grant you a nonexclusive perpetual license to run and
+examine the NVM Demo only for evaluation purposes. You may not share
+or distribute the NVM Demo to any third party, nor create derivative
+works, nor use the NVM Demo for commercial purposes.
+
+TITLE
+
+We remain the owner of all right, title and interest in the NVM
+Demo.
+
+NO WARRANTY
+
+To the extent permitted by applicable law, WE MAKE NO WARRANTIES
+OR REPRESENTATIONS OF ANY KIND CONCERNING THE ACCURACY OR SUITABILITY
+OF THE NVM DEMO FOR ANY PURPOSE.  THE NVM DEMO IS PROVIDED "AS IS"
+AND WITH SPECIFIC DISCLAIMER OF ANY WARRANTIES OR CONDITION OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE AND/OR
+NON-INFRINGEMENT, regardless of whether we know or had reason to
+know of your particular needs. No employee, agent, dealer or
+distributor of ours is authorized to modify this limited warranty,
+nor to make any additional warranties.
+
+IN NO EVENT WILL WE BE LIABLE TO YOU FOR ANY DAMAGES, INCLUDING ANY
+LOST PROFITS, LOST SAVINGS, OR OTHER INCIDENTAL OR CONSEQUENTIAL
+DAMAGES ARISING FROM THE USE OR THE INABILITY TO USE THE NVM DEMO
+(EVEN IF WE OR AN AUTHORIZED DEALER OR DISTRIBUTOR HAS BEEN ADVISED
+OF THE POSSIBILITY OF THESE DAMAGES, OR FOR ANY CLAIM BY ANY OTHER
+PARTY.
+
+TERM AND TERMINATION
+
+This license agreement takes effect upon your download of the NVM
+Demo and remains effective until terminated. You may terminate it
+at any time by destroying all copies of the NVM Demo in your
+possession.  It will also automatically terminate if you fail to
+comply with any term or condition of this license agreement. You
+agree on termination of this license to destroy all copies of the
+NVM Demo in your possession.
+
+GENERAL PROVISIONS
+
+1. This written license agreement is the exclusive agreement between
+you and us concerning the NVM Demo and supersedes any and all prior
+oral or written agreements, negotiations or other dealings between
+us concerning the NVM Demo.
+
+2. This license agreement may not be modified.
+
+3. In the event of litigation between you and us concerning the NVM
+Demo, the prevailing party in the litigation will be entitled to
+recover attorney fees and expenses from the other party.
+
+4. This license agreement is governed by the laws of the Commonwealth
+of Massachusetts.
+
+5. You agree that the NVM Demo will not be shipped, transferred or
+exported into any country or used in any manner prohibited by the
+United States Export Administration Act or any other export laws,
+restrictions or regulations.
+
+                                    Document Revision: 20130614
