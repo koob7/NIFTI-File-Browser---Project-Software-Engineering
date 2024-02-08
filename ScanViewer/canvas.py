@@ -1,10 +1,13 @@
 from PySide6.QtGui import QPixmap, QColor, QPainter, QCursor, QPen
 from PySide6.QtWidgets import QLabel
+from matplotlib import patches
 from matplotlib.backends.backend_qt import NavigationToolbar2QT
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
 from PySide6.QtCore import Qt
+from matplotlib.lines import Line2D
 
+from contour import Contour
 """
 Nadpisanie klasy FigureCanvasQTAgg w celu przechwytywania wydarzeń
 """
@@ -15,7 +18,7 @@ class Canvas(FigureCanvasQTAgg):
         super(Canvas, self).__init__(fig)
         self.toolbar: NavigationToolbar2QT = None
         self.drawing = False
-        self.contour = None
+        self.contour: Contour = None
         self.cid = fig.canvas.mpl_connect('motion_notify_event', self.drawMatplot)
 
     """
@@ -56,10 +59,11 @@ class Canvas(FigureCanvasQTAgg):
     def drawMatplot(self, event):
         if event.button == 1:
             if self.drawing:
-                ax = self.figure.get_axes()[0]
-                ax.plot(event.xdata, event.ydata, 'bo')
+                parentAx = self.figure.get_axes()[0]
+                point = patches.Circle((event.xdata, event.ydata))
+                self.contour.pointList.append((event.xdata, event.ydata))
+                parentAx.add_patch(point)
                 self.figure.canvas.draw()
-
 
     def drawToggle(self):
         if not self.drawing:
@@ -67,3 +71,15 @@ class Canvas(FigureCanvasQTAgg):
         else:
             self.drawing = False
         self.toolbar.pan()
+
+    def redrawContour(self):
+        parentAx = self.figure.get_axes()[0]
+        for coord in self.contour.pointList:
+            point = patches.Circle((coord[0], coord[1]))
+            parentAx.add_patch(point)
+        self.figure.canvas.draw()
+
+    def clearContour(self):
+        parentAx = self.figure.get_axes()[0]
+        for patch in parentAx.patches:
+            patch.remove()

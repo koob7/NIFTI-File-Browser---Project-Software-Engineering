@@ -7,11 +7,13 @@ from matplotlib.figure import Figure
 import nibabel
 
 from canvas import Canvas
+from contour import Contour
 
 class GUIWindow(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
 
+        self.contourList = [] # jakis init contourow z pliku tutaj bedzie kiedys
         self.img = None
         self.drawingbox = None
         """Stały rozmiar tych Figure jest wazny, inaczej scrollowanie wyglada rough"""
@@ -39,20 +41,19 @@ class GUIWindow(QtWidgets.QWidget):
         self.toolbar_right = NavigationToolbar2QT(self.canvas_right, self)
         self.canvas_right.setToolbar(self.toolbar_right)
 
-
         """Slidery do przesuwania danej perspektywy skanu"""
         self.slider1 = QtWidgets.QSlider()
         self.slider1.setMinimum(0)
         self.slider1.setOrientation(QtCore.Qt.Orientation.Horizontal)
-        self.slider1.valueChanged.connect(lambda: self.draw_plots(self.fig_left, "left"))
+        self.slider1.valueChanged.connect(lambda: self.slidePlot(self.canvas_left, "left"))
         self.slider2 = QtWidgets.QSlider()
         self.slider2.setMinimum(0)
         self.slider2.setOrientation(QtCore.Qt.Orientation.Horizontal)
-        self.slider2.valueChanged.connect(lambda: self.draw_plots(self.fig_mid, "mid"))
+        self.slider2.valueChanged.connect(lambda: self.slidePlot(self.canvas_mid, "mid"))
         self.slider3 = QtWidgets.QSlider()
         self.slider3.setMinimum(0)
         self.slider3.setOrientation(QtCore.Qt.Orientation.Horizontal)
-        self.slider3.valueChanged.connect(lambda: self.draw_plots(self.fig_right, "right"))
+        self.slider3.valueChanged.connect(lambda: self.slidePlot(self.canvas_right, "right"))
 
         """Layout w qt - doku jest spoko opisana taki trochę flexbox"""
         self.layout = QtWidgets.QVBoxLayout(self)
@@ -142,7 +143,7 @@ class GUIWindow(QtWidgets.QWidget):
         self.draw_plots(self.fig_left, "left")
         self.draw_plots(self.fig_mid, "mid")
         self.draw_plots(self.fig_right, "right")
-        self.draw_smthg()
+        #self.draw_smthg()
 
 
     """
@@ -164,5 +165,33 @@ class GUIWindow(QtWidgets.QWidget):
         # uploading img
         painter = QPainter(self) # jakbysmy wlozyli cos innego niz self tutaj to mogloby zadzialac, ale to cos musialoby byc przezroczyste i nad naszym skanem raka
         painter.setPen(pen)
-        painter.drawLine(15, 15, 250, 0)
-        self.canvas_left.paint()
+        #painter.drawLine(15, 15, 250, 0)
+        #self.canvas_left.paint()
+
+    """Funkcja wywolywana przy zmianie slidera, rysuje nowy layer zgodnie z ustawieniem i szuka konturu"""
+    def slidePlot(self, canvas: Canvas, panel):
+        canvas.clearContour()
+        self.draw_plots(canvas.figure, panel)
+        layer = 0
+        if panel == "left":
+            layer = self.slider1.value()
+        elif panel == "mid":
+            layer = self.slider2.value()
+        elif panel == "right":
+            layer = self.slider3.value()
+        foundNew = False
+        for contour in self.contourList:
+            #ten lookup pewnie da sie zoptymalizowac czyms
+            if contour.layer == layer and contour.panel == panel:
+                canvas.contour = contour
+                canvas.redrawContour()
+                foundNew = True
+        if not foundNew:
+            #to troche zasmieca zapis (ale ulatwia logike)
+            #jesli to zostawiamy, w przyszlosci storage bedzie musial pewnie runowac jakis clean() usuawjac kontury bez zadnych punktow (mnostwo entry po nic)
+            #jesli wylatuje, tworzenie nowego konturu nalezy przesunac pewnie w miejsce togglea drawing w Canvas, ale to tworzy problemy skad Canvas ma wiedziec, jaki to layer i panel
+            #do przedyskutowania
+            newContour = Contour(panel, layer)
+            self.contourList.append(newContour)
+            canvas.contour = newContour
+
