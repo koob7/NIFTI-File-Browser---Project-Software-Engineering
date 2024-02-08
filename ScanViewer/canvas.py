@@ -8,6 +8,7 @@ from PySide6.QtCore import Qt
 from matplotlib.lines import Line2D
 
 from contour import Contour
+from annotation import ContourAnnotation
 """
 Nadpisanie klasy FigureCanvasQTAgg w celu przechwytywania wydarzeń
 """
@@ -19,6 +20,7 @@ class Canvas(FigureCanvasQTAgg):
         self.toolbar: NavigationToolbar2QT = None
         self.drawing = False
         self.contour: Contour = None
+        self.annotation: ContourAnnotation = None
         self.cid = fig.canvas.mpl_connect('motion_notify_event', self.drawMatplot)
 
     """

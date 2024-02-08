@@ -8,12 +8,14 @@ import nibabel
 
 from canvas import Canvas
 from contour import Contour
+from annotation import ContourAnnotation, Annotation
 
 class GUIWindow(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
-
+        #storage.init
         self.contourList = [] # jakis init contourow z pliku tutaj bedzie kiedys
+        self.annotation: Annotation = Annotation()
         self.img = None
         self.drawingbox = None
         """Stały rozmiar tych Figure jest wazny, inaczej scrollowanie wyglada rough"""
@@ -21,7 +23,9 @@ class GUIWindow(QtWidgets.QWidget):
         self.fig_mid = Figure(figsize=(8, 6))
         self.fig_right = Figure(figsize=(8, 8))
 
-        """Przyciski"""
+        """Przyciski
+           Tutaj warto przemysleć instancjowoanie zależne do zalogowanego konta, ale to jak wejzdie jakieś logowanie na bit
+        """
         self.load = QtWidgets.QPushButton("Load Image")
         self.reset_left = QtWidgets.QPushButton('Reset')
         self.reset_mid = QtWidgets.QPushButton('Reset')
@@ -29,6 +33,15 @@ class GUIWindow(QtWidgets.QWidget):
         self.draw_left = QtWidgets.QPushButton('Draw')
         self.draw_mid = QtWidgets.QPushButton('Draw')
         self.draw_right = QtWidgets.QPushButton('Draw')
+        self.anno_left = QtWidgets.QPushButton('Annotate')
+        self.anno_mid = QtWidgets.QPushButton('Annotate')
+        self.anno_right = QtWidgets.QPushButton('Annotate')
+
+        """TextArea na Annotation"""
+        self.text_left = QtWidgets.QTextEdit()
+        self.text_mid = QtWidgets.QTextEdit()
+        self.text_right = QtWidgets.QTextEdit()
+        self.text_general = QtWidgets.QTextEdit()
 
         """Canvasy na których wyświetlany będzie skan"""
         self.canvas_left = Canvas(self.fig_left)
@@ -61,14 +74,17 @@ class GUIWindow(QtWidgets.QWidget):
         self.buttons_left = QtWidgets.QHBoxLayout(self)
         self.buttons_left.addWidget(self.reset_left)
         self.buttons_left.addWidget(self.draw_left)
+        self.buttons_left.addWidget(self.anno_left)
         self.buttons.addLayout(self.buttons_left)
         self.buttons_mid = QtWidgets.QHBoxLayout(self)
         self.buttons_mid.addWidget(self.reset_mid)
         self.buttons_mid.addWidget(self.draw_mid)
+        self.buttons_mid.addWidget(self.anno_mid)
         self.buttons.addLayout(self.buttons_mid)
         self.buttons_right = QtWidgets.QHBoxLayout(self)
         self.buttons_right.addWidget(self.reset_right)
         self.buttons_right.addWidget(self.draw_right)
+        self.buttons_right.addWidget(self.anno_right)
         self.buttons.addLayout(self.buttons_right)
         canvas_layout = QtWidgets.QHBoxLayout(self)
         canvas_layout.addWidget(self.canvas_left)
@@ -78,10 +94,16 @@ class GUIWindow(QtWidgets.QWidget):
         slider_layout.addWidget(self.slider1)
         slider_layout.addWidget(self.slider2)
         slider_layout.addWidget(self.slider3)
+        contourAnnotationLayout = QtWidgets.QHBoxLayout(self)
+        contourAnnotationLayout.addWidget(self.text_left)
+        contourAnnotationLayout.addWidget(self.text_mid)
+        contourAnnotationLayout.addWidget(self.text_right)
         self.layout.addWidget(self.load)
         self.layout.addLayout(self.buttons)
         self.layout.addLayout(canvas_layout)
         self.layout.addLayout(slider_layout)
+        self.layout.addLayout(contourAnnotationLayout)
+        self.layout.addWidget(self.text_general)
 
         """Połączenia dla przycisków"""
         self.load.clicked.connect(self.load_scan)
@@ -143,6 +165,7 @@ class GUIWindow(QtWidgets.QWidget):
         self.draw_plots(self.fig_left, "left")
         self.draw_plots(self.fig_mid, "mid")
         self.draw_plots(self.fig_right, "right")
+        #Ogolnie inicjalizacje konturów i adnotacji mozna przesunac tutaj, dajac kazdemu skanowi jakies ID czy cos mozna do klas dorzucic te wlasciwosci przy konstruktorach
         #self.draw_smthg()
 
 
@@ -168,17 +191,45 @@ class GUIWindow(QtWidgets.QWidget):
         #painter.drawLine(15, 15, 250, 0)
         #self.canvas_left.paint()
 
-    """Funkcja wywolywana przy zmianie slidera, rysuje nowy layer zgodnie z ustawieniem i szuka konturu"""
+    """Funkcja wywolywana przy zmianie slidera, rysuje nowy layer zgodnie z ustawieniem i szuka konturu
+        Można rozważyć rozbudowanie canvasu o linki do textu, bo ten if udajacy switcha wyglada p a s k u d n i e
+    """
     def slidePlot(self, canvas: Canvas, panel):
+        if panel == "left":
+            if canvas.annotation is not None:
+                canvas.annotation.annotation = self.text_left.toPlainText()
+        elif panel == "mid":
+            if canvas.annotation is not None:
+                canvas.annotation.annotation = self.text_mid.toPlainText()
+        elif panel == "right":
+            if canvas.annotation is not None:
+                canvas.annotation.annotation = self.text_right.toPlainText()
         canvas.clearContour()
         self.draw_plots(canvas.figure, panel)
         layer = 0
+        foundNew = False
         if panel == "left":
             layer = self.slider1.value()
+            self.text_left.clear()
         elif panel == "mid":
             layer = self.slider2.value()
+            self.text_mid.clear()
         elif panel == "right":
             layer = self.slider3.value()
+            self.text_right.clear()
+        for annotation in self.annotation.contourAnnotations:
+            if annotation.layer == layer and annotation.panel == panel:
+                canvas.annotation = annotation
+                foundNew = True
+                if panel == "left":
+                    self.text_left.setText(annotation.annotation)
+                elif panel == "mid":
+                    self.text_mid.setText(annotation.annotation)
+                elif panel == "right":
+                    self.text_right.setText(annotation.annotation)
+        if not foundNew:
+            newAnnotation = ContourAnnotation(panel, layer)
+            canvas.annotation = newAnnotation
         foundNew = False
         for contour in self.contourList:
             #ten lookup pewnie da sie zoptymalizowac czyms
@@ -192,6 +243,7 @@ class GUIWindow(QtWidgets.QWidget):
             #jesli wylatuje, tworzenie nowego konturu nalezy przesunac pewnie w miejsce togglea drawing w Canvas, ale to tworzy problemy skad Canvas ma wiedziec, jaki to layer i panel
             #do przedyskutowania
             newContour = Contour(panel, layer)
+            self.annotation.contourAnnotations.append(newAnnotation)
             self.contourList.append(newContour)
             canvas.contour = newContour
 
