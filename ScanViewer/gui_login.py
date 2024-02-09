@@ -1,6 +1,6 @@
 from PySide6 import QtWidgets, QtCore
 from status import LoginStatus
-
+#
 class GUI_Login(QtWidgets.QWidget):
     main_window = QtCore.Signal()
     register_window = QtCore.Signal()

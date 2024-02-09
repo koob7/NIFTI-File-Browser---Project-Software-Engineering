@@ -1,5 +1,5 @@
 from enum import Enum
-
+#
 class LoginStatus:
     class Profession(Enum):
         DOCTOR = "Doctor"
