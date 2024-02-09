@@ -6,6 +6,7 @@ from matplotlib.backends.backend_qtagg import NavigationToolbar2QT
 from matplotlib.figure import Figure
 import nibabel
 import os
+import pickle
 
 from canvas import Canvas
 from contour import Contour
@@ -156,9 +157,7 @@ class GUIWindow(QtWidgets.QWidget):
         filepath = open_file_dialog()
         wrapped_img = nibabel.load(filepath)
         self.nii_name = os.path.splitext(os.path.basename(filepath))[0]
-        self.canvas_left.deserialize(self.nii_name + "left.pickle")
-        self.canvas_left.deserialize(self.nii_name + "mid.pickle")
-        self.canvas_left.deserialize(self.nii_name + "right.pickle")
+        self.deserialize(self.nii_name+".pickle")
         self.img = wrapped_img.get_fdata()
         self.drawingbox = QPixmap(filepath)
         self.fig_left.add_subplot(111)
@@ -257,6 +256,20 @@ class GUIWindow(QtWidgets.QWidget):
 
     def __del__(self):
         if self.nii_name!="":
-            self.canvas_left.serialize(self.nii_name+"left.pickle")
-            self.canvas_mid.serialize(self.nii_name+"mid.pickle")
-            self.canvas_right.serialize(self.nii_name+"right.pickle")
+            self.serialize(self.nii_name+".pickle")
+
+    def serialize(self, name: str):
+        with open("contourList_"+name, 'wb') as f:
+            pickle.dump(self.contourList, f)
+        with open("annotation_"+name, 'wb') as f:
+            pickle.dump(self.annotation, f)
+
+    def deserialize(self, name: str):
+        current_dir = os.getcwd()
+        files_in_dir = os.listdir(current_dir)
+        if ("contourList_" + name) in files_in_dir:
+            with open(("contourList_" + name), 'rb') as f:
+                self.contourList = pickle.load(f)
+        if ("annotation_" + name) in files_in_dir:
+            with open(("annotation_" + name), 'rb') as f:
+                self.annotation = pickle.load(f)

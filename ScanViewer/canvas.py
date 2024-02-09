@@ -88,18 +88,4 @@ class Canvas(FigureCanvasQTAgg):
         for patch in parentAx.patches:
             patch.remove()
 
-    def serialize(self, name: str):
-        with open("contour"+name, 'wb') as f:
-            pickle.dump(self.contour, f)
-        with open("annotation"+name, 'wb') as f:
-            pickle.dump(self.annotation, f)
 
-    def deserialize(self, name: str):
-        current_dir = os.getcwd()
-        files_in_dir = os.listdir(current_dir)
-        if ("contour" + name) in files_in_dir:
-            with open(("contour" + name), 'rb') as f:
-                contour = pickle.load(f)
-        if ("annotation" + name) in files_in_dir:
-            with open(("annotation" + name), 'rb') as f:
-                annotation = pickle.load(f)
