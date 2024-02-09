@@ -123,6 +123,8 @@ class GUIWindow(QtWidgets.QWidget):
         painter = QPainter(self)
         painter.setPen(pen)
         painter.drawEllipse(15, 15, 200, 200)
+        painter.end()
+
 
     @QtCore.Slot()
     def load_scan(self):

@@ -61,6 +61,7 @@ class Canvas(FigureCanvasQTAgg):
                 self.figure.canvas.draw()
 
 
+
     def drawToggle(self):
         if not self.drawing:
             self.drawing = True
