@@ -5,12 +5,14 @@ from filedialogs import open_file_dialog
 from matplotlib.backends.backend_qtagg import NavigationToolbar2QT
 from matplotlib.figure import Figure
 import nibabel
+import os
 
 from canvas import Canvas
 from contour import Contour
 from annotation import ContourAnnotation, Annotation
 
 class GUIWindow(QtWidgets.QWidget):
+    nii_name =""
     def __init__(self):
         super().__init__()
         #storage.init
@@ -153,6 +155,10 @@ class GUIWindow(QtWidgets.QWidget):
     def load_scan(self):
         filepath = open_file_dialog()
         wrapped_img = nibabel.load(filepath)
+        self.nii_name = os.path.splitext(os.path.basename(filepath))[0]
+        self.canvas_left.deserialize(self.nii_name + "left.pickle")
+        self.canvas_left.deserialize(self.nii_name + "mid.pickle")
+        self.canvas_left.deserialize(self.nii_name + "right.pickle")
         self.img = wrapped_img.get_fdata()
         self.drawingbox = QPixmap(filepath)
         self.fig_left.add_subplot(111)
@@ -249,3 +255,8 @@ class GUIWindow(QtWidgets.QWidget):
             self.contourList.append(newContour)
             canvas.contour = newContour
 
+    def __del__(self):
+        if self.nii_name!="":
+            self.canvas_left.serialize(self.nii_name+"left.pickle")
+            self.canvas_mid.serialize(self.nii_name+"mid.pickle")
+            self.canvas_right.serialize(self.nii_name+"right.pickle")

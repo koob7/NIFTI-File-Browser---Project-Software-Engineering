@@ -6,6 +6,8 @@ from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
 from PySide6.QtCore import Qt
 from matplotlib.lines import Line2D
+import pickle
+import os
 
 from contour import Contour
 from annotation import ContourAnnotation
@@ -85,3 +87,19 @@ class Canvas(FigureCanvasQTAgg):
         parentAx = self.figure.get_axes()[0]
         for patch in parentAx.patches:
             patch.remove()
+
+    def serialize(self, name: str):
+        with open("contour"+name, 'wb') as f:
+            pickle.dump(self.contour, f)
+        with open("annotation"+name, 'wb') as f:
+            pickle.dump(self.annotation, f)
+
+    def deserialize(self, name: str):
+        current_dir = os.getcwd()
+        files_in_dir = os.listdir(current_dir)
+        if ("contour" + name) in files_in_dir:
+            with open(("contour" + name), 'rb') as f:
+                contour = pickle.load(f)
+        if ("annotation" + name) in files_in_dir:
+            with open(("annotation" + name), 'rb') as f:
+                annotation = pickle.load(f)

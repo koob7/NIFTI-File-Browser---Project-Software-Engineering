@@ -8,3 +8,4 @@ class Annotation():
     def __init__(self):
         self.annotation = ""
         self.contourAnnotations = []
+
