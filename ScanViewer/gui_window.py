@@ -26,7 +26,7 @@ class GUIWindow(QtWidgets.QWidget):
         self.fig_mid = Figure(figsize=(8, 6))
         self.fig_right = Figure(figsize=(8, 8))
         self.nii_name = ""
-        self.was_open=False
+
 
         """Przyciski
            Tutaj warto przemysleć instancjowoanie zależne do zalogowanego konta, ale to jak wejzdie jakieś logowanie na bit
@@ -156,9 +156,8 @@ class GUIWindow(QtWidgets.QWidget):
 
     @QtCore.Slot()
     def load_scan(self):
-        if self.was_open:
+        if self.nii_name!="":
                 self.serialize(self.nii_name+".pickle")
-        self.was_open=True
         filepath = open_file_dialog()
         wrapped_img = nibabel.load(filepath)
         self.nii_name = os.path.splitext(os.path.basename(filepath))[0]
