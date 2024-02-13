@@ -8,11 +8,9 @@ import nibabel
 import os
 import pickle
 
-
 from canvas import Canvas
 from contour import Contour
 from annotation import ContourAnnotation, Annotation
-from storage import Storage
 
 class GUIWindow(QtWidgets.QWidget):
 
@@ -159,13 +157,11 @@ class GUIWindow(QtWidgets.QWidget):
     @QtCore.Slot()
     def load_scan(self):
         if self.nii_name!="":
-                Storage.serialize(self.nii_name+".pickle", self.annotation, self.contourList)
-                #self.serialize(self.nii_name+".pickle")
+                self.serialize(self.nii_name+".pickle")
         filepath = open_file_dialog()
         wrapped_img = nibabel.load(filepath)
         self.nii_name = os.path.splitext(os.path.basename(filepath))[0]
-        self.annotation, self.contourList = Storage.deserialize(self.nii_name+".pickle")
-        #self.deserialize(self.nii_name+".pickle")
+        self.deserialize(self.nii_name+".pickle")
         self.img = wrapped_img.get_fdata()
         self.drawingbox = QPixmap(filepath)
         self.fig_left.add_subplot(111)
@@ -264,8 +260,7 @@ class GUIWindow(QtWidgets.QWidget):
 
     def __del__(self):
         if self.nii_name!="":
-            #self.serialize(self.nii_name+".pickle")
-            Storage.serialize(self.nii_name+".pickle", self.annotation, self.contourList)
+            self.serialize(self.nii_name+".pickle")
 
     def serialize(self, name: str):
         with open("contourList_"+name, 'wb') as f:

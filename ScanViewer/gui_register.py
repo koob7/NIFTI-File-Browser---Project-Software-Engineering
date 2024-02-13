@@ -1,6 +1,5 @@
 from PySide6 import QtWidgets, QtCore
 from status import LoginStatus
-from storage import Storage
 #
 class GUI_Register(QtWidgets.QWidget):
     main_window = QtCore.Signal()
@@ -66,7 +65,10 @@ class GUI_Register(QtWidgets.QWidget):
             QtWidgets.QMessageBox.warning(self, "Registration Failed", "Missing data. Please try again.")
         elif  password == confirm_password:
             # Zapis danych do pliku
-            Storage.add_user_to_file(username, password, profession)
+            with open("user_manager.txt", "a") as file:
+                user_id = len(open("user_manager.txt").readlines()) + 1  # Nowe id użytkownika
+                file.write(f"{user_id} {username} {password} {profession}\n")
+            LoginStatus.set(user_id, LoginStatus.Profession[profession.upper()])
             self.main_window.emit()
         else:
             QtWidgets.QMessageBox.warning(self, "Registration Failed", "Passwords do not match. Please try again.")
