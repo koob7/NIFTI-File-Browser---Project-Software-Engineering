@@ -5,9 +5,11 @@ from contour import Contour
 from status import LoginStatus
 
 class Storage:
+    """Class responsible for handling data storage."""
 
     @staticmethod
     def serialize(name: str, annotation: Annotation, contourList: list[Contour]):
+        """Serialize annotation and contour list to files."""
         with open("contourList_"+name, 'wb') as f:
             pickle.dump(contourList, f)
         with open("annotation_"+name, 'wb') as f:
@@ -15,8 +17,12 @@ class Storage:
 
     @staticmethod
     def deserialize(name: str) -> tuple[Annotation, list[Contour]]:
+        """Deserialize annotation and contour list from files."""
         current_dir = os.getcwd()
         files_in_dir = os.listdir(current_dir)
+        loaded_contour_list = []
+        loaded_annotation = None
+
         if "contourList_" + name in files_in_dir:
             with open("contourList_" + name, 'rb') as f:
                 loaded_contour_list = pickle.load(f)
@@ -29,6 +35,7 @@ class Storage:
 
     @staticmethod
     def check_user_in_file(username: str, password: str) -> bool:
+        """Check if the user exists in the user file."""
         current_dir = os.getcwd()
         files_in_dir = os.listdir(current_dir)
 
@@ -45,8 +52,9 @@ class Storage:
 
     @staticmethod
     def add_user_to_file(username: str, password: str, profession: str):
+        """Add a new user to the user file."""
         with open("user_manager.txt", "a") as file:
-            user_id = len(open("user_manager.txt").readlines()) + 1  # Nowe id użytkownika
+            user_id = len(open("user_manager.txt").readlines()) + 1  # New user id
             file.write(f"{user_id} {username} {password} {profession}\n")
             LoginStatus.set(user_id, LoginStatus.Profession[profession.upper()])
         return user_id

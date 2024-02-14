@@ -2,15 +2,19 @@ from PySide6 import QtWidgets, QtCore
 from status import LoginStatus
 from storage import Storage
 import os
-#
+
 class GUI_Login(QtWidgets.QWidget):
+    """Class representing the login GUI."""
+
+    # Signals for navigation between windows
     main_window = QtCore.Signal()
     register_window = QtCore.Signal()
 
     def __init__(self):
+        """Initialize the login GUI."""
         super().__init__()
 
-        # Inicjalizacja elementów interfejsu użytkownika
+        # Initialize user interface elements
         self.login_button = QtWidgets.QPushButton("Login")
         self.register_button = QtWidgets.QPushButton("Register")
         self.username_label = QtWidgets.QLabel("Username:")
@@ -21,12 +25,12 @@ class GUI_Login(QtWidgets.QWidget):
         self.show_password_checkbox = QtWidgets.QCheckBox("Show Password")
         self.login_label = QtWidgets.QLabel("Login", alignment=QtCore.Qt.AlignCenter)
 
-        # Połączenie sygnałów z odpowiednimi metodami
+        # Connect signals to corresponding methods
         self.login_button.clicked.connect(self.try_login)
         self.register_button.clicked.connect(self.register_window.emit)
         self.show_password_checkbox.stateChanged.connect(self.toggle_password_visibility)
 
-        # Układ interfejsu użytkownika
+        # Layout of the user interface
         login_layout = QtWidgets.QVBoxLayout(self)
         layout = QtWidgets.QVBoxLayout()
         layout.setContentsMargins(300, 170, 300, 200)
@@ -45,7 +49,7 @@ class GUI_Login(QtWidgets.QWidget):
         login_layout.addLayout(layout)
 
     def try_login(self):
-        # Logika weryfikacji loginu
+        """Attempt to login with provided credentials."""
         username = self.username_entry.text()
         password = self.password_entry.text()
         if Storage.check_user_in_file(username, password):
@@ -54,7 +58,7 @@ class GUI_Login(QtWidgets.QWidget):
             QtWidgets.QMessageBox.warning(self, "Login Failed", "Invalid username or password. Please try again.")
 
     def toggle_password_visibility(self, state):
-        # Przełączanie widoczności hasła
+        """Toggle password visibility."""
         if state:
             self.password_entry.setEchoMode(QtWidgets.QLineEdit.Normal)
         else:

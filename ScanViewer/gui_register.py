@@ -1,15 +1,19 @@
 from PySide6 import QtWidgets, QtCore
 from status import LoginStatus
 from storage import Storage
-#
+
 class GUI_Register(QtWidgets.QWidget):
+    """Class representing the registration GUI."""
+
+    # Signals for navigation between windows
     main_window = QtCore.Signal()
     login_window = QtCore.Signal()
 
     def __init__(self):
+        """Initialize the registration GUI."""
         super().__init__()
 
-        # Inicjalizacja elementów interfejsu użytkownika
+        # Initialize user interface elements
         self.register_button = QtWidgets.QPushButton("Register")
         self.cancel_button = QtWidgets.QPushButton("Cancel")
         self.username_label = QtWidgets.QLabel("Username:")
@@ -19,19 +23,19 @@ class GUI_Register(QtWidgets.QWidget):
         self.username_entry = QtWidgets.QLineEdit()
         self.password_entry = QtWidgets.QLineEdit()
         self.confirm_password_entry = QtWidgets.QLineEdit()
-        self.profession_combo = QtWidgets.QComboBox()  # Lista rozwijana dla profesji
-        self.profession_combo.addItems(["Doctor", "Guest", "Manager"])  # Dodanie opcji do listy rozwijanej
+        self.profession_combo = QtWidgets.QComboBox()  # Dropdown list for professions
+        self.profession_combo.addItems(["Doctor", "Guest", "Manager"])  # Adding options to the dropdown list
         self.password_entry.setEchoMode(QtWidgets.QLineEdit.Password)
         self.confirm_password_entry.setEchoMode(QtWidgets.QLineEdit.Password)
-        self.show_password_checkbox = QtWidgets.QCheckBox("Show Password")  # Przycisk do odkrywania hasła
+        self.show_password_checkbox = QtWidgets.QCheckBox("Show Password")  # Button to reveal password
         self.register_label = QtWidgets.QLabel("Register", alignment=QtCore.Qt.AlignCenter)
 
-        # Połączenia sygnałów z odpowiednimi metodami
+        # Connect signals to corresponding methods
         self.register_button.clicked.connect(self.try_register)
         self.cancel_button.clicked.connect(self.login_window.emit)
         self.show_password_checkbox.stateChanged.connect(self.toggle_password_visibility)
 
-        # Układ interfejsu użytkownika
+        # Layout of the user interface
         register_layout = QtWidgets.QVBoxLayout(self)
         layout = QtWidgets.QVBoxLayout()
         layout.setContentsMargins(300, 170, 300, 100)
@@ -47,7 +51,7 @@ class GUI_Register(QtWidgets.QWidget):
         layout.addWidget(self.register_button)
         layout.addWidget(self.cancel_button)
 
-        # Dodanie etykiety do głównego układu
+        # Add label to the main layout
         font = self.register_label.font()
         font.setPointSize(30)
         self.register_label.setFont(font)
@@ -55,24 +59,25 @@ class GUI_Register(QtWidgets.QWidget):
         register_layout.addLayout(layout)
 
     def try_register(self):
-        # Pobranie danych z pól
+        """Attempt to register a new user."""
+        # Get data from fields
         username = self.username_entry.text()
         password = self.password_entry.text()
         confirm_password = self.confirm_password_entry.text()
         profession = self.profession_combo.currentText()
 
-        # Sprawdzenie poprawności danych
+        # Check data validity
         if username == "" or password == "" or confirm_password =="":
             QtWidgets.QMessageBox.warning(self, "Registration Failed", "Missing data. Please try again.")
         elif  password == confirm_password:
-            # Zapis danych do pliku
+            # Save data to file
             Storage.add_user_to_file(username, password, profession)
             self.main_window.emit()
         else:
             QtWidgets.QMessageBox.warning(self, "Registration Failed", "Passwords do not match. Please try again.")
 
     def toggle_password_visibility(self, state):
-        # Przełączanie widoczności hasła
+        """Toggle password visibility."""
         if state:
             self.password_entry.setEchoMode(QtWidgets.QLineEdit.Normal)
             self.confirm_password_entry.setEchoMode(QtWidgets.QLineEdit.Normal)
