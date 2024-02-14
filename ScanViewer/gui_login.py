@@ -1,5 +1,6 @@
 from PySide6 import QtWidgets, QtCore
 from status import LoginStatus
+from storage import Storage
 import os
 #
 class GUI_Login(QtWidgets.QWidget):
@@ -47,22 +48,10 @@ class GUI_Login(QtWidgets.QWidget):
         # Logika weryfikacji loginu
         username = self.username_entry.text()
         password = self.password_entry.text()
-
-        current_dir = os.getcwd()
-        files_in_dir = os.listdir(current_dir)
-        if "user_manager.txt" in files_in_dir:
-        # Sprawdzenie czy użytkownik istnieje w pliku
-            with open("user_manager.txt", "r") as file:
-                for line in file:
-                    data = line.split()
-                    if len(data) >= 4 and data[1] == username and data[2] == password:
-                        user_id = int(data[0])
-                        profession = data[3]
-                        LoginStatus.set(user_id, LoginStatus.Profession[profession.upper()])
-                        self.main_window.emit()
-                        return
-
-        QtWidgets.QMessageBox.warning(self, "Login Failed", "Invalid username or password. Please try again.")
+        if Storage.check_user_in_file(username, password):
+            self.main_window.emit()
+        else:
+            QtWidgets.QMessageBox.warning(self, "Login Failed", "Invalid username or password. Please try again.")
 
     def toggle_password_visibility(self, state):
         # Przełączanie widoczności hasła

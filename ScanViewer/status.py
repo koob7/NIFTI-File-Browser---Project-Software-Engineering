@@ -11,7 +11,7 @@ class LoginStatus:
     profession = Profession.LOGGED_OUT
 
     @staticmethod
-    def set(id, profesion):
+    def set(id: int, profesion: Profession):
         LoginStatus.id = id
         LoginStatus.profession = profesion
 
