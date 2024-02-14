@@ -42,8 +42,8 @@ class UIMenu(QMainWindow):
         register_window_widget.login_window.connect(register_window_widget.close)
         register_window_widget.login_window.connect(login_window_widget.show)
 
-        #login_window_widget.close() #do usunięcia przy końcówce projektu!!!
-        #self.main_window_widget.show() #do usunięcia przy końcówce projektu!!!
+        login_window_widget.close() #do usunięcia przy końcówce projektu!!!
+        self.main_window_widget.show() #do usunięcia przy końcówce projektu!!!
 
         # Running the main application loop
         sys.exit(self.app.exec())

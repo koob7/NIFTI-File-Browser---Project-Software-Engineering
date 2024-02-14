@@ -159,13 +159,24 @@ class GUIWindow(QtWidgets.QWidget):
     @QtCore.Slot()
     def load_scan(self):
         if self.nii_name!="":
-                Storage.serialize(self.nii_name+".pickle", self.annotation, self.contourList)
-                #self.serialize(self.nii_name+".pickle")
+            Storage.serialize(self.nii_name+".pickle", self.annotation, self.contourList)
+
+            # Usuń poprzednie obrazy na canvasach
+            self.fig_left.clear()
+            self.fig_mid.clear()
+            self.fig_right.clear()
+            wrapped_img = None
+            self.img = None
+            self.draw_smthg = None
+
         filepath = open_file_dialog()
+        if filepath is None:
+            QtWidgets.QMessageBox.warning(self, "Loading Failed", "Pleas choose file.")
+            return
         wrapped_img = nibabel.load(filepath)
         self.nii_name = os.path.splitext(os.path.basename(filepath))[0]
         self.annotation, self.contourList = Storage.deserialize(self.nii_name+".pickle")
-        #self.deserialize(self.nii_name+".pickle")
+
         self.img = wrapped_img.get_fdata()
         self.drawingbox = QPixmap(filepath)
         self.fig_left.add_subplot(111)
@@ -210,6 +221,8 @@ class GUIWindow(QtWidgets.QWidget):
         Można rozważyć rozbudowanie canvasu o linki do textu, bo ten if udajacy switcha wyglada p a s k u d n i e
     """
     def slidePlot(self, canvas: Canvas, panel):
+        if self.img is None:
+            return
         if panel == "left":
             if canvas.annotation is not None:
                 canvas.annotation.annotation = self.text_left.toPlainText()
@@ -232,6 +245,7 @@ class GUIWindow(QtWidgets.QWidget):
         elif panel == "right":
             layer = self.slider3.value()
             self.text_right.clear()
+        #if self.annotation.contourAnnotations is not None:
         for annotation in self.annotation.contourAnnotations:
             if annotation.layer == layer and annotation.panel == panel:
                 canvas.annotation = annotation
