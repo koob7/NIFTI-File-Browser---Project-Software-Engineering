@@ -1,5 +1,11 @@
-class Contour():
+class Contour:
+    """
+    Class representing a single countour
+
+    Holds all the points where a patch has to be drawn.
+    The panel and layer together form a key that allow one Contour to belong to one specific layer in a scan.
+    """
     def __init__(self, panel, layer):
         self.pointList = []
-        self.panel = panel #Rozważyć tutaj enum, docelowo left/mid/right
-        self.layer = layer #To po prostu int z wartoscia ktora na sliderze - to i panel tworzylyby klucz do jakiegos innego czegos nw mapy moze
+        self.panel = panel
+        self.layer = layer

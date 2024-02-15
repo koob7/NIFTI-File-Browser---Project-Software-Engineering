@@ -1,38 +1,36 @@
 from PySide6 import QtCore, QtWidgets
-from PySide6.QtGui import QPixmap, QPainter, Qt, QPen
-from PySide6.QtWidgets import QLabel
+from status import LoginStatus
 from filedialogs import open_file_dialog
 from matplotlib.backends.backend_qtagg import NavigationToolbar2QT
 from matplotlib.figure import Figure
 import nibabel
 import os
-import pickle
-
-
 from canvas import Canvas
 from contour import Contour
 from annotation import ContourAnnotation, Annotation
 from storage import Storage
 
+
 class GUIWindow(QtWidgets.QWidget):
+    """
+    Class GUIWindow represents the main window of the application.
+
+    It sets up the GUI and handles all the application's functionalities.
+    """
 
     def __init__(self):
+        """Initializes the class, setting up all the elements of the GUI and how they are laid out in the window"""
         super().__init__()
-        #storage.init
-        self.contourList = [] # jakis init contourow z pliku tutaj bedzie kiedys
-        self.annotation: Annotation = Annotation()
+        self.profession = LoginStatus.read_profession()
+        self.contourList: [Contour] = None
+        self.annotation: Annotation = None
         self.img = None
-        self.drawingbox = None
-        """Stały rozmiar tych Figure jest wazny, inaczej scrollowanie wyglada rough"""
         self.fig_left = Figure(figsize=(8, 6))
         self.fig_mid = Figure(figsize=(8, 6))
         self.fig_right = Figure(figsize=(8, 8))
         self.nii_name = ""
 
-
-        """Przyciski
-           Tutaj warto przemysleć instancjowoanie zależne do zalogowanego konta, ale to jak wejzdie jakieś logowanie na bit
-        """
+        """Initialization of buttons used in the app"""
         self.load = QtWidgets.QPushButton("Load Image")
         self.reset_left = QtWidgets.QPushButton('Reset')
         self.reset_mid = QtWidgets.QPushButton('Reset')
@@ -40,58 +38,62 @@ class GUIWindow(QtWidgets.QWidget):
         self.draw_left = QtWidgets.QPushButton('Draw')
         self.draw_mid = QtWidgets.QPushButton('Draw')
         self.draw_right = QtWidgets.QPushButton('Draw')
-        self.anno_left = QtWidgets.QPushButton('Annotate')
-        self.anno_mid = QtWidgets.QPushButton('Annotate')
-        self.anno_right = QtWidgets.QPushButton('Annotate')
 
-        """TextArea na Annotation"""
+        """Initialization of text areas representing the annotations made in the app"""
         self.text_left = QtWidgets.QTextEdit()
         self.text_mid = QtWidgets.QTextEdit()
         self.text_right = QtWidgets.QTextEdit()
         self.text_general = QtWidgets.QTextEdit()
+        self.text_general.textChanged.connect(lambda: self.annotation.set_annotation(self.text_general.toPlainText()))
 
-        """Canvasy na których wyświetlany będzie skan"""
+        """Initialization of Canvases displaying the scans"""
         self.canvas_left = Canvas(self.fig_left)
         self.canvas_mid = Canvas(self.fig_mid)
         self.canvas_right = Canvas(self.fig_right)
         self.toolbar_left = NavigationToolbar2QT(self.canvas_left, self)
-        self.canvas_left.setToolbar(self.toolbar_left)
+        self.canvas_left.set_toolbar(self.toolbar_left)
         self.toolbar_mid = NavigationToolbar2QT(self.canvas_mid, self)
-        self.canvas_mid.setToolbar(self.toolbar_mid)
+        self.canvas_mid.set_toolbar(self.toolbar_mid)
         self.toolbar_right = NavigationToolbar2QT(self.canvas_right, self)
-        self.canvas_right.setToolbar(self.toolbar_right)
+        self.canvas_right.set_toolbar(self.toolbar_right)
 
-        """Slidery do przesuwania danej perspektywy skanu"""
+        """Initialization of sliders allowing for changing the scan's layer"""
         self.slider1 = QtWidgets.QSlider()
         self.slider1.setMinimum(0)
         self.slider1.setOrientation(QtCore.Qt.Orientation.Horizontal)
-        self.slider1.valueChanged.connect(lambda: self.slidePlot(self.canvas_left, "left"))
+        self.slider1.valueChanged.connect(lambda: self.slide_plot(self.canvas_left, "left"))
         self.slider2 = QtWidgets.QSlider()
         self.slider2.setMinimum(0)
         self.slider2.setOrientation(QtCore.Qt.Orientation.Horizontal)
-        self.slider2.valueChanged.connect(lambda: self.slidePlot(self.canvas_mid, "mid"))
+        self.slider2.valueChanged.connect(lambda: self.slide_plot(self.canvas_mid, "mid"))
         self.slider3 = QtWidgets.QSlider()
         self.slider3.setMinimum(0)
         self.slider3.setOrientation(QtCore.Qt.Orientation.Horizontal)
-        self.slider3.valueChanged.connect(lambda: self.slidePlot(self.canvas_right, "right"))
+        self.slider3.valueChanged.connect(lambda: self.slide_plot(self.canvas_right, "right"))
 
-        """Layout w qt - doku jest spoko opisana taki trochę flexbox"""
+        """Setting up the layout of the app"""
         self.layout = QtWidgets.QVBoxLayout(self)
         self.buttons = QtWidgets.QHBoxLayout(self)
         self.buttons_left = QtWidgets.QHBoxLayout(self)
         self.buttons_left.addWidget(self.reset_left)
-        self.buttons_left.addWidget(self.draw_left)
-        self.buttons_left.addWidget(self.anno_left)
+        if self.profession == LoginStatus.Profession.ADMIN or LoginStatus.profession.PHYSICIAN:
+            self.buttons_left.addWidget(self.draw_left)
+        if self.profession != LoginStatus.Profession.ADMIN and LoginStatus.profession.DOCTOR:
+            self.text_left.setDisabled(True)
         self.buttons.addLayout(self.buttons_left)
         self.buttons_mid = QtWidgets.QHBoxLayout(self)
         self.buttons_mid.addWidget(self.reset_mid)
-        self.buttons_mid.addWidget(self.draw_mid)
-        self.buttons_mid.addWidget(self.anno_mid)
+        if self.profession == LoginStatus.Profession.ADMIN or LoginStatus.profession.PHYSICIAN:
+            self.buttons_mid.addWidget(self.draw_mid)
+        if self.profession != LoginStatus.Profession.ADMIN and LoginStatus.profession.DOCTOR:
+            self.text_mid.setDisabled(True)
         self.buttons.addLayout(self.buttons_mid)
         self.buttons_right = QtWidgets.QHBoxLayout(self)
         self.buttons_right.addWidget(self.reset_right)
-        self.buttons_right.addWidget(self.draw_right)
-        self.buttons_right.addWidget(self.anno_right)
+        if self.profession == LoginStatus.Profession.ADMIN or LoginStatus.profession.PHYSICIAN:
+            self.buttons_right.addWidget(self.draw_right)
+        if self.profession != LoginStatus.Profession.ADMIN and LoginStatus.profession.DOCTOR:
+            self.text_right.setDisabled(True)
         self.buttons.addLayout(self.buttons_right)
         canvas_layout = QtWidgets.QHBoxLayout(self)
         canvas_layout.addWidget(self.canvas_left)
@@ -101,34 +103,37 @@ class GUIWindow(QtWidgets.QWidget):
         slider_layout.addWidget(self.slider1)
         slider_layout.addWidget(self.slider2)
         slider_layout.addWidget(self.slider3)
-        contourAnnotationLayout = QtWidgets.QHBoxLayout(self)
-        contourAnnotationLayout.addWidget(self.text_left)
-        contourAnnotationLayout.addWidget(self.text_mid)
-        contourAnnotationLayout.addWidget(self.text_right)
+        contour_annotation_layout = QtWidgets.QHBoxLayout(self)
+        contour_annotation_layout.addWidget(self.text_left)
+        contour_annotation_layout.addWidget(self.text_mid)
+        contour_annotation_layout.addWidget(self.text_right)
         self.layout.addWidget(self.load)
         self.layout.addLayout(self.buttons)
         self.layout.addLayout(canvas_layout)
         self.layout.addLayout(slider_layout)
-        self.layout.addLayout(contourAnnotationLayout)
+        self.layout.addLayout(contour_annotation_layout)
         self.layout.addWidget(self.text_general)
+        if self.profession != LoginStatus.Profession.ADMIN and LoginStatus.profession.DOCTOR:
+            self.text_general.setDisabled(True)
 
-        """Połączenia dla przycisków"""
+        """Button connections"""
         self.load.clicked.connect(self.load_scan)
         self.reset_left.clicked.connect(self.toolbar_left.home)
         self.reset_mid.clicked.connect(self.toolbar_mid.home)
         self.reset_right.clicked.connect(self.toolbar_right.home)
-        self.draw_left.clicked.connect(self.canvas_left.drawToggle)
-        self.draw_mid.clicked.connect(self.canvas_mid.drawToggle)
-        self.draw_right.clicked.connect(self.canvas_right.drawToggle)
+        self.draw_left.clicked.connect(self.canvas_left.draw_toggle)
+        self.draw_mid.clicked.connect(self.canvas_mid.draw_toggle)
+        self.draw_right.clicked.connect(self.canvas_right.draw_toggle)
 
-
-    """
-    Ukradzione z dokumentacji nibabela
-    """
     @QtCore.Slot()
     def draw_plots(self, fig: Figure, panel):
+        """
+        Function used to draw the chosen layer of the scan onto the Canvases
+        This function is freely available in the niBabel library documentation
+        """
         if len(fig.axes) != 0:
             ax = fig.get_axes()[0]
+            ax.set_axis_off()
             slice = None
             if panel == "left":
                 slice = self.img[self.slider1.value(), :, :, 0]
@@ -139,46 +144,39 @@ class GUIWindow(QtWidgets.QWidget):
             ax.imshow(slice.T, cmap="gray", origin="lower")
             fig.canvas.draw()
 
-    """
-    Moim pomysłem było, żeby zrobić metodą zależną od self.canvas_left.drawing i tutaj rysować po czymś
-    Problem polega na tym, że sposób w jaki ja to wywołuje wgl nic nie rysuje. Można by teoretycznie zrobić ten kod w tej metodzie
-    Paint event i uzależnić ten kod od jakiś bool'i. ale i tak nie umiem dać do paintera czegoś na czym by mi to malował.
-    Póki, co jak zerkniesz niżej do PaintEvent metody na dole to ona rysuje pod wszystkimi elementami, które się wyświetlają
-    (guziki, canvasy etc.)
-    """
-    def draw_smthg(self):
-        pen = QPen()
-        pen.setWidth(777)
-
-        painter = QPainter(self)
-        painter.setPen(pen)
-        painter.drawEllipse(15, 15, 200, 200)
-        painter.end()
-
-
     @QtCore.Slot()
     def load_scan(self):
-        if self.nii_name!="":
+        """
+        This function handles loading the scan for the first time after using the Load Image button
+        """
+        """ This part handles closing and saving the previous image had it been loaded before"""
+        if self.nii_name != "":
             Storage.serialize(self.nii_name+".pickle", self.annotation, self.contourList)
 
-            # Usuń poprzednie obrazy na canvasach
             self.fig_left.clear()
             self.fig_mid.clear()
             self.fig_right.clear()
-            wrapped_img = None
             self.img = None
-            self.draw_smthg = None
 
+        """This part handles loading the data from the chosen file into variables"""
         filepath = open_file_dialog()
         if filepath is None:
-            QtWidgets.QMessageBox.warning(self, "Loading Failed", "Pleas choose file.")
+            QtWidgets.QMessageBox.warning(self, "Loading Failed", "Please choose file.")
             return
         wrapped_img = nibabel.load(filepath)
         self.nii_name = os.path.splitext(os.path.basename(filepath))[0]
+        """
+        This part checks if this scan has been loaded before and if so,
+         loads the contours and annotations made last time
+         """
         self.annotation, self.contourList = Storage.deserialize(self.nii_name+".pickle")
-
+        if self.annotation is None:
+            self.annotation = Annotation()
+        if self.contourList is None:
+            self.contourList = []
+        """This part parses the loaded data into plots and draws them on their respective Canvases"""
         self.img = wrapped_img.get_fdata()
-        self.drawingbox = QPixmap(filepath)
+        self.text_general.setText(self.annotation.annotation)
         self.fig_left.add_subplot(111)
         self.fig_mid.add_subplot(111)
         self.fig_right.add_subplot(111)
@@ -191,36 +189,19 @@ class GUIWindow(QtWidgets.QWidget):
         self.draw_plots(self.fig_left, "left")
         self.draw_plots(self.fig_mid, "mid")
         self.draw_plots(self.fig_right, "right")
-        #Ogolnie inicjalizacje konturów i adnotacji mozna przesunac tutaj, dajac kazdemu skanowi jakies ID czy cos mozna do klas dorzucic te wlasciwosci przy konstruktorach
-        #self.draw_smthg()
 
+    def slide_plot(self, canvas: Canvas, panel):
+        """
+        This function handles everything that happens after a slider is moved.
 
-    """
-    No to tak ta metoda na dole działała najlepiej, ale nwm czy można jej dać coś innego niż "self"
-    https://doc.qt.io/qt-6/qpaintevent.html
-    Tutaj niby można dać jej byle jaki "paintRegion", ale nwm jak się jak uzależnia od zmiennych, tak, żeby rysowanie np nie było
-    cały czas włączone.
-    Ale to jako jedyne mi cokolwiek narysowało.
-    
-    Edit:
-    Uważam, że dobrym pomysłem byłoby nałożenie jakieś Pixmapy w miejsce w którym jest wyświetlane zdjęcie i rysowanie na niej
-    Pozdrawiam, ja debil
-    """
-    def paintEvent(self, event):
-        # drawing handling
-        pen = QPen()
-        pen.setWidth(7)
-
-        # uploading img
-        painter = QPainter(self) # jakbysmy wlozyli cos innego niz self tutaj to mogloby zadzialac, ale to cos musialoby byc przezroczyste i nad naszym skanem raka
-        painter.setPen(pen)
-        #painter.drawLine(15, 15, 250, 0)
-        #self.canvas_left.paint()
-
-    """Funkcja wywolywana przy zmianie slidera, rysuje nowy layer zgodnie z ustawieniem i szuka konturu
-        Można rozważyć rozbudowanie canvasu o linki do textu, bo ten if udajacy switcha wyglada p a s k u d n i e
-    """
-    def slidePlot(self, canvas: Canvas, panel):
+        After a slider is moved, the canvas has to make sure the contour and annotation made on its previous layer
+        are properly saved and then needs to display the new layer whilst checking if there are already preexisting
+        contours and annotation made for the new layer - if there are they have to be loaded, if there aren't new
+        instances of those objects have to be created.
+        :param canvas: Canvas to draw on
+        :param panel: Which panel (left, middle or right) is the canvas on
+        :return: None
+        """
         if self.img is None:
             return
         if panel == "left":
@@ -232,10 +213,10 @@ class GUIWindow(QtWidgets.QWidget):
         elif panel == "right":
             if canvas.annotation is not None:
                 canvas.annotation.annotation = self.text_right.toPlainText()
-        canvas.clearContour()
+        canvas.clear_contour()
         self.draw_plots(canvas.figure, panel)
         layer = 0
-        foundNew = False
+        found_new = False
         if panel == "left":
             layer = self.slider1.value()
             self.text_left.clear()
@@ -245,54 +226,32 @@ class GUIWindow(QtWidgets.QWidget):
         elif panel == "right":
             layer = self.slider3.value()
             self.text_right.clear()
-        #if self.annotation.contourAnnotations is not None:
         for annotation in self.annotation.contourAnnotations:
             if annotation.layer == layer and annotation.panel == panel:
                 canvas.annotation = annotation
-                foundNew = True
+                found_new = True
                 if panel == "left":
                     self.text_left.setText(annotation.annotation)
                 elif panel == "mid":
                     self.text_mid.setText(annotation.annotation)
                 elif panel == "right":
                     self.text_right.setText(annotation.annotation)
-        if not foundNew:
-            newAnnotation = ContourAnnotation(panel, layer)
-            canvas.annotation = newAnnotation
-        foundNew = False
+        if not found_new:
+            new_annotation = ContourAnnotation(panel, layer)
+            canvas.annotation = new_annotation
+        found_new = False
         for contour in self.contourList:
-            #ten lookup pewnie da sie zoptymalizowac czyms
             if contour.layer == layer and contour.panel == panel:
                 canvas.contour = contour
-                canvas.redrawContour()
-                foundNew = True
-        if not foundNew:
-            #to troche zasmieca zapis (ale ulatwia logike)
-            #jesli to zostawiamy, w przyszlosci storage bedzie musial pewnie runowac jakis clean() usuawjac kontury bez zadnych punktow (mnostwo entry po nic)
-            #jesli wylatuje, tworzenie nowego konturu nalezy przesunac pewnie w miejsce togglea drawing w Canvas, ale to tworzy problemy skad Canvas ma wiedziec, jaki to layer i panel
-            #do przedyskutowania
-            newContour = Contour(panel, layer)
-            self.annotation.contourAnnotations.append(newAnnotation)
-            self.contourList.append(newContour)
-            canvas.contour = newContour
+                canvas.redraw_contour()
+                found_new = True
+        if not found_new:
+            new_contour = Contour(panel, layer)
+            self.annotation.contourAnnotations.append(new_annotation)
+            self.contourList.append(new_contour)
+            canvas.contour = new_contour
 
     def __del__(self):
-        if self.nii_name!="":
-            #self.serialize(self.nii_name+".pickle")
+        """Destructor of the class, saves the contours and annotations if the user leaves."""
+        if self.nii_name != "":
             Storage.serialize(self.nii_name+".pickle", self.annotation, self.contourList)
-
-    def serialize(self, name: str):
-        with open("contourList_"+name, 'wb') as f:
-            pickle.dump(self.contourList, f)
-        with open("annotation_"+name, 'wb') as f:
-            pickle.dump(self.annotation, f)
-
-    def deserialize(self, name: str):
-        current_dir = os.getcwd()
-        files_in_dir = os.listdir(current_dir)
-        if ("contourList_" + name) in files_in_dir:
-            with open(("contourList_" + name), 'rb') as f:
-                self.contourList = pickle.load(f)
-        if ("annotation_" + name) in files_in_dir:
-            with open(("annotation_" + name), 'rb') as f:
-                self.annotation = pickle.load(f)

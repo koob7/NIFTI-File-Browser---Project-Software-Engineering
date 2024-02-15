@@ -1,14 +1,16 @@
 from enum import Enum
 
+
 class LoginStatus:
     """Class representing the login status of users."""
 
     class Profession(Enum):
         """Enum for user professions."""
         DOCTOR = "Doctor"
-        GUEST = "Guest"
-        MANAGER = "Manager"
+        PATIENT = "Patient"
+        PHYSICIAN = "Physician"
         LOGGED_OUT = "Logged out"
+        ADMIN = "Admin"
 
     id = 0
     profession = Profession.LOGGED_OUT
@@ -28,7 +30,10 @@ class LoginStatus:
     @staticmethod
     def read_profession():
         """Read the user's profession."""
-        return LoginStatus.profession.value
+        if LoginStatus.profession is LoginStatus.Profession.LOGGED_OUT:
+            return LoginStatus.profession.ADMIN
+        else:
+            return LoginStatus.profession.value
 
     @staticmethod
     def read_id():

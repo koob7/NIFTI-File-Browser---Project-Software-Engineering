@@ -1,17 +1,18 @@
 import os
 import pickle
-from annotation import ContourAnnotation, Annotation
+from annotation import Annotation
 from contour import Contour
 from status import LoginStatus
+
 
 class Storage:
     """Class responsible for handling data storage."""
 
     @staticmethod
-    def serialize(name: str, annotation: Annotation, contourList: list[Contour]):
+    def serialize(name: str, annotation: Annotation, contour_list: list[Contour]):
         """Serialize annotation and contour list to files."""
         with open("contourList_"+name, 'wb') as f:
-            pickle.dump(contourList, f)
+            pickle.dump(contour_list, f)
         with open("annotation_"+name, 'wb') as f:
             pickle.dump(annotation, f)
 

@@ -1,10 +1,11 @@
 import sys
 from PySide6 import QtWidgets
 from PySide6.QtWidgets import QMainWindow
-
+from status import LoginStatus
 from gui_login import GUI_Login
 from gui_register import GUI_Register
 from gui_window import GUIWindow
+
 
 class UIMenu(QMainWindow):
     """
@@ -42,8 +43,8 @@ class UIMenu(QMainWindow):
         register_window_widget.login_window.connect(register_window_widget.close)
         register_window_widget.login_window.connect(login_window_widget.show)
 
-        login_window_widget.close() #do usunięcia przy końcówce projektu!!!
-        self.main_window_widget.show() #do usunięcia przy końcówce projektu!!!
+        #login_window_widget.close()
+        #self.main_window_widget.show() Debug lines - allow to skip the login procedure and ease bugtesting.
 
         # Running the main application loop
         sys.exit(self.app.exec())

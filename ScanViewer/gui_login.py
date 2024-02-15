@@ -49,7 +49,7 @@ class GUI_Login(QtWidgets.QWidget):
         login_layout.addLayout(layout)
 
     def try_login(self):
-        """Attempt to login with provided credentials."""
+        """Attempt to log in with provided credentials."""
         username = self.username_entry.text()
         password = self.password_entry.text()
         if Storage.check_user_in_file(username, password):
