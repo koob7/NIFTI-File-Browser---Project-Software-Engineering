@@ -54,8 +54,15 @@ class Storage:
     @staticmethod
     def add_user_to_file(username: str, password: str, profession: str):
         """Add a new user to the user file."""
+        with open("user_manager.txt", "r") as file:
+            existing_usernames = [line.split()[1] for line in file if line.strip()]
+
+        if username in existing_usernames:
+            return False  # Return False to indicate failure
+
         with open("user_manager.txt", "a") as file:
             user_id = len(open("user_manager.txt").readlines()) + 1  # New user id
             file.write(f"{user_id} {username} {password} {profession}\n")
             LoginStatus.set(user_id, LoginStatus.Profession[profession.upper()])
-        return user_id
+        return True  # Return True to indicate success
+

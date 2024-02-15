@@ -24,7 +24,7 @@ class GUI_Register(QtWidgets.QWidget):
         self.password_entry = QtWidgets.QLineEdit()
         self.confirm_password_entry = QtWidgets.QLineEdit()
         self.profession_combo = QtWidgets.QComboBox()  # Dropdown list for professions
-        self.profession_combo.addItems(["Doctor", "Patient", "Physician"])  # Adding options to the dropdown list
+        self.profession_combo.addItems(["Doctor", "Patient", "Physician", "Logged_out", "Admin"])  # Adding options to the dropdown list
         self.password_entry.setEchoMode(QtWidgets.QLineEdit.Password)
         self.confirm_password_entry.setEchoMode(QtWidgets.QLineEdit.Password)
         self.show_password_checkbox = QtWidgets.QCheckBox("Show Password")  # Button to reveal password
@@ -71,8 +71,10 @@ class GUI_Register(QtWidgets.QWidget):
             QtWidgets.QMessageBox.warning(self, "Registration Failed", "Missing data. Please try again.")
         elif  password == confirm_password:
             # Save data to file
-            Storage.add_user_to_file(username, password, profession)
-            self.main_window.emit()
+            if Storage.add_user_to_file(username, password, profession):
+                self.main_window.emit()
+            else:
+                QtWidgets.QMessageBox.warning(self, "Registration Failed", "User with this username already exists. Please try again.")
         else:
             QtWidgets.QMessageBox.warning(self, "Registration Failed", "Passwords do not match. Please try again.")
 

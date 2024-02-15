@@ -43,8 +43,5 @@ class UIMenu(QMainWindow):
         register_window_widget.login_window.connect(register_window_widget.close)
         register_window_widget.login_window.connect(login_window_widget.show)
 
-        #login_window_widget.close()
-        #self.main_window_widget.show() Debug lines - allow to skip the login procedure and ease bugtesting.
-
         # Running the main application loop
         sys.exit(self.app.exec())
