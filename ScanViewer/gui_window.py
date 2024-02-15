@@ -76,24 +76,15 @@ class GUIWindow(QtWidgets.QWidget):
         self.buttons = QtWidgets.QHBoxLayout(self)
         self.buttons_left = QtWidgets.QHBoxLayout(self)
         self.buttons_left.addWidget(self.reset_left)
-        if self.profession == LoginStatus.Profession.ADMIN or LoginStatus.profession.PHYSICIAN:
-            self.buttons_left.addWidget(self.draw_left)
-        if self.profession != LoginStatus.Profession.ADMIN and LoginStatus.profession.DOCTOR:
-            self.text_left.setDisabled(True)
+        self.buttons_left.addWidget(self.draw_left)
         self.buttons.addLayout(self.buttons_left)
         self.buttons_mid = QtWidgets.QHBoxLayout(self)
         self.buttons_mid.addWidget(self.reset_mid)
-        if self.profession == LoginStatus.Profession.ADMIN or LoginStatus.profession.PHYSICIAN:
-            self.buttons_mid.addWidget(self.draw_mid)
-        if self.profession != LoginStatus.Profession.ADMIN and LoginStatus.profession.DOCTOR:
-            self.text_mid.setDisabled(True)
+        self.buttons_mid.addWidget(self.draw_mid)
         self.buttons.addLayout(self.buttons_mid)
         self.buttons_right = QtWidgets.QHBoxLayout(self)
         self.buttons_right.addWidget(self.reset_right)
-        if self.profession == LoginStatus.Profession.ADMIN or LoginStatus.profession.PHYSICIAN:
-            self.buttons_right.addWidget(self.draw_right)
-        if self.profession != LoginStatus.Profession.ADMIN and LoginStatus.profession.DOCTOR:
-            self.text_right.setDisabled(True)
+        self.buttons_right.addWidget(self.draw_right)
         self.buttons.addLayout(self.buttons_right)
         canvas_layout = QtWidgets.QHBoxLayout(self)
         canvas_layout.addWidget(self.canvas_left)
@@ -113,14 +104,26 @@ class GUIWindow(QtWidgets.QWidget):
         self.layout.addLayout(slider_layout)
         self.layout.addLayout(contour_annotation_layout)
         self.layout.addWidget(self.text_general)
+
+        """Disabling certain functions depending on who is logged in"""
+        if self.profession != LoginStatus.Profession.ADMIN and LoginStatus.profession.PHYSICIAN:
+            self.draw_left.setDisabled(True)
+            self.draw_mid.setDisabled(True)
+            self.draw_right.setDisabled(True)
         if self.profession != LoginStatus.Profession.ADMIN and LoginStatus.profession.DOCTOR:
+            self.text_left.setDisabled(True)
+            self.text_mid.setDisabled(True)
+            self.text_right.setDisabled(True)
             self.text_general.setDisabled(True)
 
         """Button connections"""
         self.load.clicked.connect(self.load_scan)
         self.reset_left.clicked.connect(self.toolbar_left.home)
+        self.reset_left.clicked.connect(lambda: self.canvas_left.clear_contour(True))
         self.reset_mid.clicked.connect(self.toolbar_mid.home)
+        self.reset_mid.clicked.connect(lambda: self.canvas_mid.clear_contour(True))
         self.reset_right.clicked.connect(self.toolbar_right.home)
+        self.reset_right.clicked.connect(lambda: self.canvas_right.clear_contour(True))
         self.draw_left.clicked.connect(self.canvas_left.draw_toggle)
         self.draw_mid.clicked.connect(self.canvas_mid.draw_toggle)
         self.draw_right.clicked.connect(self.canvas_right.draw_toggle)
@@ -250,6 +253,28 @@ class GUIWindow(QtWidgets.QWidget):
             self.annotation.contourAnnotations.append(new_annotation)
             self.contourList.append(new_contour)
             canvas.contour = new_contour
+
+    def re_layout(self):
+        """This function handles disabling and enabling ceratain functions depending on who is logged in"""
+        self.profession = LoginStatus.read_profession()
+        if self.profession == 'Physician' or self.profession == 'Admin':
+            self.draw_left.setEnabled(True)
+            self.draw_mid.setEnabled(True)
+            self.draw_right.setEnabled(True)
+        else:
+            self.draw_left.setDisabled(True)
+            self.draw_mid.setDisabled(True)
+            self.draw_right.setDisabled(True)
+        if self.profession == 'Doctor' or self.profession == 'Admin':
+            self.text_left.setEnabled(True)
+            self.text_mid.setEnabled(True)
+            self.text_right.setEnabled(True)
+            self.text_general.setEnabled(True)
+        else:
+            self.text_left.setDisabled(True)
+            self.text_mid.setDisabled(True)
+            self.text_right.setDisabled(True)
+            self.text_general.setDisabled(True)
 
     def __del__(self):
         """Destructor of the class, saves the contours and annotations if the user leaves."""

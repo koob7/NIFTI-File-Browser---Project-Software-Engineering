@@ -61,10 +61,10 @@ class Canvas(FigureCanvasQTAgg):
                 parent_ax = self.figure.get_axes()[0]
                 point = patches.Circle((event.xdata, event.ydata))
                 try:
+                    parent_ax.add_patch(point)
                     self.contour.pointList.append((event.xdata, event.ydata))
-                except:
-                    print("Drawing out of bounds")
-                parent_ax.add_patch(point)
+                except TypeError:
+                    pass
                 self.figure.canvas.draw()
 
     def draw_toggle(self):
@@ -86,8 +86,19 @@ class Canvas(FigureCanvasQTAgg):
             parent_ax.add_patch(point)
         self.figure.canvas.draw()
 
-    def clear_contour(self):
-        """This function clears the currently displayed patches - called when the user is changing the layer."""
-        parent_ax = self.figure.get_axes()[0]
+    def clear_contour(self, full_clear: bool = False):
+        """
+        This function clears the currently displayed patches.
+
+        Depending on the full_clear param, it can also clear the patch data from the Contour instance - used when the
+        user clicks the reset button.
+        """
+        try:
+            parent_ax = self.figure.get_axes()[0]
+        except IndexError:
+            return
         for patch in parent_ax.patches:
             patch.remove()
+        if full_clear:
+            self.contour.pointList = []
+            self.figure.canvas.draw()

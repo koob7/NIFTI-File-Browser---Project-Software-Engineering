@@ -1,4 +1,4 @@
 1 admin admin Doctor
 2 user user Patient
-
+3 phy phy Physician
 4 admin1 admin Admin

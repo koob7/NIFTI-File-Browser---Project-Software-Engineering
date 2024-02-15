@@ -24,7 +24,7 @@ class GUI_Register(QtWidgets.QWidget):
         self.password_entry = QtWidgets.QLineEdit()
         self.confirm_password_entry = QtWidgets.QLineEdit()
         self.profession_combo = QtWidgets.QComboBox()  # Dropdown list for professions
-        self.profession_combo.addItems(["Doctor", "Patient", "Physician", "Logged_out", "Admin"])  # Adding options to the dropdown list
+        self.profession_combo.addItems(["Doctor", "Patient", "Physician", "Admin"])  # Adding options to the dropdown list
         self.password_entry.setEchoMode(QtWidgets.QLineEdit.Password)
         self.confirm_password_entry.setEchoMode(QtWidgets.QLineEdit.Password)
         self.show_password_checkbox = QtWidgets.QCheckBox("Show Password")  # Button to reveal password

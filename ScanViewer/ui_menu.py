@@ -36,12 +36,16 @@ class UIMenu(QMainWindow):
         # Connecting signals related to navigation between screens
         login_window_widget.main_window.connect(login_window_widget.close)
         login_window_widget.main_window.connect(self.main_window_widget.show)
+        login_window_widget.main_window.connect(lambda: self.main_window_widget.re_layout())
         login_window_widget.register_window.connect(login_window_widget.close)
         login_window_widget.register_window.connect(register_window_widget.show)
         register_window_widget.main_window.connect(register_window_widget.close)
         register_window_widget.main_window.connect(self.main_window_widget.show)
         register_window_widget.login_window.connect(register_window_widget.close)
         register_window_widget.login_window.connect(login_window_widget.show)
+
+        #login_window_widget.close()
+        #self.main_window_widget.show()
 
         # Running the main application loop
         sys.exit(self.app.exec())
