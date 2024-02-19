@@ -59,7 +59,7 @@ class Canvas(FigureCanvasQTAgg):
         if event.button == 1:
             if self.drawing:
                 parent_ax = self.figure.get_axes()[0]
-                point = patches.Circle((event.xdata, event.ydata))
+                point = patches.Circle((event.xdata, event.ydata), radius=0.5, color='blue')
                 try:
                     parent_ax.add_patch(point)
                     self.contour.pointList.append((event.xdata, event.ydata))
@@ -82,7 +82,7 @@ class Canvas(FigureCanvasQTAgg):
         """
         parent_ax = self.figure.get_axes()[0]
         for coord in self.contour.pointList:
-            point = patches.Circle((coord[0], coord[1]))
+            point = patches.Circle((coord[0], coord[1]), radius=0.5, color='blue')
             parent_ax.add_patch(point)
         self.figure.canvas.draw()
 
